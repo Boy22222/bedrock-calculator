@@ -1,0 +1,276 @@
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bedrock Secure Self Storage - Interactive Visualizer</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-hover: #172554;
+            --secondary: #d97706;
+            --dark: #1f2937;
+            --light: #ffffff;
+            --border-color: #e5e7eb;
+            --accent: #22c55e;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            padding: 40px 20px;
+        }
+        .estimator-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: grid;
+            grid-template-columns: 1.2fr 1.3fr;
+            gap: 35px;
+        }
+        @media (max-width: 900px) {
+            .estimator-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        h2 {
+            color: var(--primary);
+            margin-bottom: 5px;
+            grid-column: 1 / -1;
+        }
+        .subtitle {
+            color: #4b5563;
+            margin-bottom: 20px;
+            grid-column: 1 / -1;
+            border-bottom: 2px solid #f3f4f6;
+            padding-bottom: 15px;
+        }
+        .category-title {
+            font-weight: bold;
+            color: var(--primary);
+            margin: 20px 0 10px 0;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-left: 4px solid var(--secondary);
+            padding-left: 8px;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .item-info label {
+            font-weight: 500;
+            display: block;
+        }
+        .item-info span {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-count {
+            background: var(--primary);
+            border: 1px solid var(--primary);
+            color: #ffffff;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        .btn-count:hover {
+            background: var(--primary-hover);
+        }
+        .count-display {
+            font-weight: bold;
+            width: 24px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .visual-panel {
+            background: #111827;
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 550px;
+        }
+        .panel-header {
+            margin-bottom: 15px;
+        }
+        .recommended-size {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+        .canvas-container {
+            background: #1f2937;
+            border-radius: 8px;
+            height: 320px;
+            position: relative;
+            overflow-y: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #374151;
+            margin: 15px 0;
+        }
+        .canvas-grid {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            padding: 20px;
+            gap: 10px;
+        }
+        .visual-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .furniture-item { background: #3b82f6; border-left: 4px solid #1d4ed8; }
+        .box-item { background: #f59e0b; border-left: 4px solid #b45309; }
+        .appliance-item { background: #ec4899; border-left: 4px solid #be185d; }
+        
+        .empty-notice {
+            color: #9ca3af;
+            text-align: center;
+            font-style: italic;
+        }
+        .stats-footer {
+            border-top: 1px solid #374151;
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+        }
+        .stats-footer strong { color: var(--secondary); }
+    </style>
+</head>
+<body>
+
+<div class="estimator-container">
+    <h2>Bedrock Sizing & Live Unit Visualizer</h2>
+    <p class="subtitle">Watch your selected items fill our premium 9-foot high storage units in real-time below.</p>
+    
+    <!-- Left Column: Controls -->
+    <div class="inventory-column">
+        <div class="category-title">Furniture & Bedding</div>
+        <div class="item-row">
+            <div class="item-info"><label>King / Queen Bed Set</label><span>40 sq. ft.</span></div>
+            <div class="counter-controls">
+                <button class="btn-count" onclick="updateQty('bedLarge', -1)">-</button>
+                <div class="count-display" id="qty-bedLarge">0</div>
+                <button class="btn-count" onclick="updateQty('bedLarge', 1)">+</button>
+            </div>
+        </div>
+        <div class="item-row">
+            <div class="item-info"><label>Sofa / Couch</label><span>35 sq. ft.</span></div>
+            <div class="counter-controls">
+                <button class="btn-count" onclick="updateQty('sofa', -1)">-</button>
+                <div class="count-display" id="qty-sofa">0</div>
+                <button class="btn-count" onclick="updateQty('sofa', 1)">+</button>
+            </div>
+        </div>
+        <div class="item-row">
+            <div class="item-info"><label>Dresser / Bureau</label><span>20 sq. ft.</span></div>
+            <div class="counter-controls">
+                <button class="btn-count" onclick="updateQty('dresser', -1)">-</button>
+                <div class="count-display" id="qty-dresser">0</div>
+                <button class="btn-count" onclick="updateQty('dresser', 1)">+</button>
+            </div>
+        </div>
+
+        <div class="category-title">Appliances</div>
+        <div class="item-row">
+            <div class="item-info"><label>Refrigerator</label><span>15 sq. ft.</span></div>
+            <div class="counter-controls">
+                <button class="btn-count" onclick="updateQty('fridge', -1)">-</button>
+                <div class="count-display" id="qty-fridge">0</div>
+                <button class="btn-count" onclick="updateQty('fridge', 1)">+</button>
+            </div>
+        </div>
+
+        <div class="category-title">Boxes & Containers</div>
+        <div class="item-row">
+            <div class="item-info"><label>Standard Moving Box</label><span>3.5 sq. ft.</span></div>
+            <div class="counter-controls">
+                <button class="btn-count" onclick="updateQty('box', -1)">-</button>
+                <div class="count-display" id="qty-box">0</div>
+                <button class="btn-count" onclick="updateQty('box', 1)">+</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Visual Stage -->
+    <div class="visual-panel">
+        <div class="panel-header">
+            <div class="result-heading">Suggested Allocation:</div>
+            <div class="recommended-size" id="size-title">Empty Canvas</div>
+            <div style="font-size: 0.85rem; color:#9ca3af; margin-top: 2px;">Blueprint Profile: All configurations utilize 9' high stacking clearances</div>
+        </div>
+
+        <!-- Dynamic Visual Unit Stage -->
+        <div class="canvas-container">
+            <div class="canvas-grid" id="visual-stage">
+                <div class="empty-notice" id="empty-msg">No items allocated. Add inventory components from the left column to fill the container blueprints.</div>
+            </div>
+        </div>
+
+        <div class="stats-footer">
+            <div>Footprint: <strong><span id="sqft-needed">0.0</span> / <span id="max-area-lbl">0</span> sq. ft.</strong></div>
+            <div>Stack Volume: <strong><span id="cuft-needed">0.0</span> cu. ft.</strong></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const itemValues = {
+        bedLarge: { name: "🛏️ Bed Set", sqft: 40, qty: 0, class: "furniture-item" },
+        sofa: { name: "🛋️ Sofa", sqft: 35, qty: 0, class: "furniture-item" },
+        dresser: { name: "🗄️ Dresser", sqft: 20, qty: 0, class: "furniture-item" },
+        fridge: { name: "🧊 Refrigerator", sqft: 15, qty: 0, class: "appliance-item" },
+        box: { name: "📦 Box", sqft: 3.5, qty: 0, class: "box-item" }
+    };
+
+    const unitTiers = [
+        { maxSqFt: 0, size: "Empty Canvas", maxArea: 0 },
+        { maxSqFt: 25, size: "5' x 5' Unit", maxArea: 25 },
+        { maxSqFt: 50, size: "10' x 5' Unit", maxArea: 50 },
